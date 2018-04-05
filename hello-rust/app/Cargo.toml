@@ -1,0 +1,20 @@
+[package]
+name = "app"
+version = "0.9.8"
+authors = ["duanran01 <duanran01@baidu.com>"]
+build = "build.rs"
+
+[dependencies]
+sgx_types = { version = "0.9.8" }
+sgx_urts = { version = "0.9.8" }
+
+path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "std", "doubly_oblivious", "standard_setup" ] }
+ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std", "doubly_oblivious"] }
+osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std", "doubly_oblivious"] }
+
+time = "*"
+generic-array = { version = "0.8", features = ["serde"] }
+flat_map = { version = "0.0.6", default-features = false, features = ["serde1"] }
+rand = { version = "0.4" }
+serde = { version = "1" }
+serde_json = { version = "1" }

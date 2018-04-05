@@ -1,0 +1,20 @@
+[package]
+name = "osm-microbenchmarks"
+version = "0.1.0"
+authors = ["Pratyush Mishra, Rishabh Poddar"]
+
+[lib]
+name = "osm_microbenchmarks"
+crate-type = ["staticlib"]
+
+[dependencies]
+path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
+ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
+osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
+
+[features]
+default = []
+
+[target.'cfg(not(target_env = "sgx"))'.dependencies]
+sgx_types = { path = "../../../sgx_types" }
+sgx_tstd = { path = "../../../sgx_tstd" }

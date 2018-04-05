@@ -1,0 +1,31 @@
+[[package]]
+name = "app"
+version = "0.9.8"
+dependencies = [
+ "sgx_types 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sgx_urts 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "sgx_types"
+version = "0.9.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "sgx_urts"
+version = "0.9.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.40 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sgx_types 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[metadata]
+"checksum libc 0.2.40 (registry+https://github.com/rust-lang/crates.io-index)" = "6fd41f331ac7c5b8ac259b8bf82c75c0fb2e469bbf37d2becbba9a6a2221965b"
+"checksum sgx_types 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)" = "dae9217f41cde70a81a3adfab96d78bcab678fd97ad4eedee004a3f0f6bb21a9"
+"checksum sgx_urts 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)" = "77309e3cb70d9a2312dc7cf3d95e9c4ad4b908e7a970306b5d87e3daa8eb6e4d"
