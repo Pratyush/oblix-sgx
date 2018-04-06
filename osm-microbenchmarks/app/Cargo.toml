@@ -16,5 +16,5 @@ time = "*"
 generic-array = { version = "0.8", features = ["serde"] }
 flat_map = { version = "0.0.6", default-features = false, features = ["serde1"] }
 rand = { version = "0.4" }
-serde = { version = "1" }
+serde = { version = "=1.0.27" }
 serde_json = { version = "1" }

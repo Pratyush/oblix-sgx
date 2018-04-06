@@ -15,6 +15,13 @@ use sgx_urts::SgxEnclave;
 type Key = u64;
 type Value = u64;
 
+
+
+extern {
+    fn osm_search(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
+                     osm_client_ref: usize, server_ref: usize, key_ref: usize, range: usize) -> sgx_status_t;
+}
+
 //pub fn insert_many(init_size: usize, n_keys: usize) {
 //    type Key = u64;
 //    type Value = u64;

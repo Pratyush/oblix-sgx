@@ -28,6 +28,13 @@
 
 extern crate sgx_types;
 extern crate sgx_urts;
+extern crate generic_array;
+
+extern crate path_oram;
+extern crate osm;
+extern crate rand;
+extern crate time;
+
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
 
@@ -131,7 +138,7 @@ fn main() {
     
     let mut retval = sgx_status_t::SGX_SUCCESS; 
 
-    let result = microbenchmarks::osm_search(&enclave, 1 << (24 - 10), 1 << 10, 1);
+    let result = microbenchmarks::search(&enclave, 1 << (24 - 10), 1 << 10, 1);
 
     match result {
         sgx_status_t::SGX_SUCCESS => {},

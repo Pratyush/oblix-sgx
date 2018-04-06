@@ -1,3 +1,10 @@
 
-/target
+**/target
 **/*.rs.bk
+*.a
+*.o
+**/bin/app
+**/app/*.c
+**/app/*.h
+**/enclave/*.c
+**/enclave/*.h

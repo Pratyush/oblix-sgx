@@ -37,6 +37,6 @@ enclave {
     trusted {
         /* define ECALLs here. */
 		
-        public sgx_status_t osm_read(size_t osm_client, size_t server, size_t key, size_t range);
+        public sgx_status_t osm_search(size_t osm_client, size_t server, size_t key, size_t range);
     };
 };

@@ -11,10 +11,11 @@ crate-type = ["staticlib"]
 path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
 ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
 osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
+serde = { version = "=1.0.27", default-features = false, features = [ "alloc" ] }
 
 [features]
 default = []
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
-sgx_types = { path = "../../../sgx_types" }
-sgx_tstd = { path = "../../../sgx_tstd" }
+sgx_types = { version = "0.9.8" }
+sgx_tstd = {  version = "0.9.8" }
