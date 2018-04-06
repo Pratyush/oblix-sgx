@@ -26,7 +26,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#![crate_name = "helloworldsampleenclave"]
+#![crate_name = "osm_microbenchmarks"]
 #![crate_type = "staticlib"]
 
 #![cfg_attr(not(target_env = "sgx"), no_std)]
@@ -37,11 +37,22 @@ extern crate sgx_types;
 #[macro_use]
 extern crate sgx_tstd as std;
 
+extern crate osm;
+extern crate path_oram;
+extern crate generic_array;
+
+use generic_array::typenum::U160;
+use osm::{OsmClient, STOsmClient};
+use path_oram::{LocalServer, PathOramClient, TreeOramClient};
+
 use sgx_types::*;
 use std::string::String;
 use std::vec::Vec;
 use std::io::{self, Write};
 use std::slice;
+
+type Key = u64;
+type Value = u64;
 
 #[no_mangle]
 pub extern "C" fn osm_search(osm_client_ref: usize, server_ref: usize, key_ref: usize, range: usize) -> sgx_status_t {
