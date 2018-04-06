@@ -178,6 +178,7 @@ dependencies = [
 name = "osm-microbenchmarks"
 version = "0.1.0"
 dependencies = [
+ "generic-array 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "ods 0.1.0 (git+https://github.com/pratyush/oblix)",
  "osm 0.1.0 (git+https://github.com/pratyush/oblix)",
  "path-oram 0.1.0 (git+https://github.com/pratyush/oblix)",

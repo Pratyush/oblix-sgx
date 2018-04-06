@@ -57,9 +57,9 @@ type Value = u64;
 #[no_mangle]
 pub extern "C" fn osm_search(osm_client_ref: usize, server_ref: usize, key_ref: usize, range: usize) -> sgx_status_t {
 
-    let ref osm_client = *(osm_client_ref as *const STOsmClient<Key, Value, PathOramClient<U160>>);
-    let ref mut server = *(server_ref as *mut LocalServer<PathOramClient<U160>>);
-    let ref read_key = *(key_ref as *const Key);
+    let ref osm_client = unsafe {*(osm_client_ref as *const STOsmClient<Key, Value, PathOramClient<U160>>)};
+    let ref mut server = unsafe {*(server_ref as *mut LocalServer<PathOramClient<U160>>)};
+    let ref read_key = unsafe {*(key_ref as *const Key)};
 
     let mut osm_client = osm_client.clone();
     let num_reads = 100;
