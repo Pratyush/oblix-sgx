@@ -12,6 +12,7 @@ path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", defaul
 ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
 osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
 serde = { version = "=1.0.27", default-features = false, features = [ "alloc" ] }
+generic-array = { version = "0.8", default-features = false, features = ["serde"] }
 
 [features]
 default = []
