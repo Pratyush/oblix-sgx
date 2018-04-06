@@ -255,10 +255,10 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
     println!("[+] Done with setup: {}", l);
 
     // Stash warm-up
-    for _ in 0..30000 {
-        let _ = osm_client.search(&read_key, 0, 1, &mut server);
-    }
-    println!("[+] Done with warm-up");
+    // for _ in 0..30000 {
+    //     let _ = osm_client.search(&read_key, 0, 1, &mut server);
+    // }
+    // println!("[+] Done with warm-up");
 
     // *****
     // *****
@@ -268,7 +268,7 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
     let server_ref = &server as *const LocalServer<PathOramClient<U160>> as u64;
     let key_ref = read_key as *const Key as u64;
 
-    let num_reads: usize = 100;
+    let num_reads: usize = 2000;
 
     let read_start = time::precise_time_s();
 
@@ -284,14 +284,8 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
         )
     };
 
-//    let _ = test_search(
-//            osm_client_ref,
-//            server_ref,
-//            read_key,
-//            range as u64,
-//        );
     let read_stop = time::precise_time_s();
-    let avg_time = (read_stop - read_start) / num_reads as f64;
+    let avg_time = (read_stop - read_start) / (num_reads as f64);
 
     println!(
         "[+] Size: {}, Values per key: {}, range: {}, times (s): {:?}",

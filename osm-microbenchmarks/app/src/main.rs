@@ -34,6 +34,10 @@ extern crate path_oram;
 extern crate osm;
 extern crate rand;
 extern crate time;
+#[macro_use]
+extern crate structopt;
+
+use structopt::StructOpt;
 
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
@@ -45,13 +49,16 @@ use std::env;
 
 mod microbenchmarks;
 
+
+
+#[derive(StructOpt, Debug)]
+struct Options {
+     #[structopt(short = "r", long = "range", help = "Number of values to retrieve", default_value = "1")]
+     range: usize,
+}
+
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 static ENCLAVE_TOKEN: &'static str = "enclave.token";
-
-extern {
-    fn say_something(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
-                     some_string: *const u8, len: usize) -> sgx_status_t;
-}
 
 fn init_enclave() -> SgxResult<SgxEnclave> {
     
@@ -134,11 +141,11 @@ fn main() {
         },
     };
 
-    let input_string = String::from("This is a normal world string passed into Enclave!\n");
-    
+    let options = Options::from_args();
+
     let mut retval = sgx_status_t::SGX_SUCCESS; 
 
-    let result = microbenchmarks::search(&enclave, 1 << (24 - 10), 1 << 10, 1);
+    let result = microbenchmarks::search(&enclave, 1 << (24 - 10), 1 << 10, options.range);
 
     match result {
         sgx_status_t::SGX_SUCCESS => {},

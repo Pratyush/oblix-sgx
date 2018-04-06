@@ -73,7 +73,7 @@ pub extern "C" fn osm_search(osm_client_ref: usize, server_ref: usize, key_ref: 
     };
 
     let mut osm_client = osm_client.clone();
-    let num_reads = 100;
+    let num_reads = 2000;
     for _ in 0..num_reads {
         osm_client.search(&read_key, 0, range, server).unwrap();
     }

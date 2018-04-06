@@ -17,6 +17,16 @@ generic-array = { version = "0.8", default-features = false, features = ["serde"
 [features]
 default = []
 
+[profile.release]
+lto = true
+opt-level = 3
+debug = false
+rpath = false
+codegen-units = 1
+debug-assertions = false
+panic = 'abort'
+
+
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
 sgx_types = { version = "0.9.8" }
 sgx_tstd = {  version = "0.9.8" }
