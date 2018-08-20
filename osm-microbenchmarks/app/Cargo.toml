@@ -5,19 +5,17 @@ authors = ["duanran01 <duanran01@baidu.com>"]
 build = "build.rs"
 
 [dependencies]
-sgx_types = { version = "0.9.8" }
-sgx_urts = { version = "0.9.8" }
+sgx_types = { version = "1.0.1" }
+sgx_urts = { version = "1.0.1" }
 
-path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "std", "doubly_oblivious", "standard_setup" ] }
-ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std", "doubly_oblivious"] }
-osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std", "doubly_oblivious"] }
+path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "std", "standard_setup" ] }
+ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std"] }
+osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std"] }
 
 time = "*"
-generic-array = { version = "0.8", features = ["serde"] }
-flat_map = { version = "0.0.6", default-features = false, features = ["serde1"] }
+generic-array = { version = "0.8" }
+flat_map = { version = "0.0.6", default-features = false }
 rand = { version = "0.4" }
-serde = { version = "=1.0.27" }
-serde_json = { version = "1" }
 structopt = { version = "0.2" }
 
 [profile.release]

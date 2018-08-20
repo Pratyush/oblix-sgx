@@ -8,11 +8,11 @@ name = "osm_microbenchmarks"
 crate-type = ["staticlib"]
 
 [dependencies]
-path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
-ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
-osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "doubly_oblivious" ] }
-serde = { version = "=1.0.27", default-features = false, features = [ "alloc" ] }
-generic-array = { version = "0.8", default-features = false, features = ["serde"] }
+path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false }
+ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false }
+osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false }
+generic-array = { version = "0.8", default-features = false}
+serde = { version = "=1.0.70", default-features = false, features = [ "alloc" ] }
 
 [features]
 default = []
@@ -28,5 +28,5 @@ panic = 'abort'
 
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
-sgx_types = { version = "0.9.8" }
-sgx_tstd = {  version = "0.9.8" }
+sgx_types = { version = "1.0.1" }
+sgx_tstd = {  version = "1.0.1" }

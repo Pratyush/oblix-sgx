@@ -3,8 +3,8 @@ use generic_array::ArrayLength;
 
 use rand;
 use time;
-use osm::{OsmClient, STOsmClient};
-use path_oram::{LocalServer, PathOramClient, PositionMap, OramKey, OramPos};
+use osm::{OsmClient, STDOsmClient};
+use path_oram::{LocalServer, PathDOramClient, doubly_oblivious::position_map::PositionMap, OramKey, OramPos};
 use path_oram::{TreeOramClient, BlockContent, EncN, EncBlkSize};
 use path_oram::oram_crypto::{Encryptor, MerkleTree};
 use rand::{OsRng, Rng};
@@ -250,7 +250,7 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
 
     let l = map.len();
     let (mut osm_client, mut server) =
-        STOsmClient::<Key, Value, PathOramClient<U160>>::setup(map.len(), map)
+        STDOsmClient::<Key, Value, PathDOramClient<U160>>::setup(map.len(), map)
             .unwrap();
     println!("[+] Done with setup: {}", l);
 
@@ -264,8 +264,8 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
     // *****
     // *****
     // Part inside here should be executed in the enclave.
-    let osm_client_ref = &osm_client as *const STOsmClient<_, _, _> as u64;
-    let server_ref = &server as *const LocalServer<PathOramClient<U160>> as u64;
+    let osm_client_ref = &osm_client as *const STDOsmClient<_, _, _> as u64;
+    let server_ref = &server as *const LocalServer<PathDOramClient<U160>> as u64;
     let key_ref = read_key as *const Key as u64;
 
     let num_reads: usize = 2000;
