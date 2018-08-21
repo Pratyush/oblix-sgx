@@ -34,7 +34,6 @@
 
 extern crate sgx_types;
 #[cfg(not(target_env = "sgx"))]
-#[macro_use]
 extern crate sgx_tstd as std;
 
 extern crate osm;
@@ -42,14 +41,10 @@ extern crate path_oram;
 extern crate generic_array;
 
 use generic_array::typenum::U160;
-use osm::{OsmClient, STOsmClient};
-use path_oram::{LocalServer, PathOramClient, TreeOramClient};
+use osm::{OsmClient, STDOsmClient};
+use path_oram::{LocalServer, PathDOramClient};
 
 use sgx_types::*;
-use std::string::String;
-use std::vec::Vec;
-use std::io::{self, Write};
-use std::slice;
 
 type Key = u64;
 type Value = u64;
@@ -58,12 +53,12 @@ type Value = u64;
 pub extern "C" fn osm_search(osm_client_ref: usize, server_ref: usize, key_ref: usize, range: usize) -> sgx_status_t {
 
     let osm_client = unsafe {
-        let osm_client = osm_client_ref as *mut STOsmClient<Key, Value, PathOramClient<U160>>;
+        let osm_client = osm_client_ref as *mut STDOsmClient<Key, Value, PathDOramClient<U160>>;
         &(*osm_client)
     };
 
     let server = unsafe {
-        let server = server_ref as *mut LocalServer<PathOramClient<U160>>;
+        let server = server_ref as *mut LocalServer<PathDOramClient<U160>>;
         &mut(*server)
     };
 

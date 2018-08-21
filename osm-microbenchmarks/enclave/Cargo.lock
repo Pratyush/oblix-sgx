@@ -9,19 +9,19 @@ dependencies = [
 [[package]]
 name = "avl"
 version = "0.1.0"
-source = "git+https://github.com/pratyush/oblix#090d19c2bbb8b320cd601e581ffa28e7af0034b2"
+source = "git+https://github.com/pratyush/oblix#e8b5cffa935d5d024e092b5f75b2243be346da8d"
 dependencies = [
  "fast-bytes 0.1.0 (git+https://github.com/pratyush/oblix)",
  "generic-array 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "ods 0.1.0 (git+https://github.com/pratyush/oblix)",
  "path-oram 0.1.0 (git+https://github.com/pratyush/oblix)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "bigint"
-version = "4.4.0"
+version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 1.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -44,15 +44,6 @@ version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "corepack"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "byteorder 1.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "crunchy"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -73,9 +64,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "fast-bytes"
 version = "0.1.0"
-source = "git+https://github.com/pratyush/oblix#090d19c2bbb8b320cd601e581ffa28e7af0034b2"
+source = "git+https://github.com/pratyush/oblix#e8b5cffa935d5d024e092b5f75b2243be346da8d"
 dependencies = [
- "bigint 4.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bigint 4.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -94,8 +85,8 @@ name = "flat_map"
 version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -104,7 +95,7 @@ version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "nodrop 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
  "typenum 1.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -116,11 +107,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "linear-map"
 version = "1.2.0"
-source = "git+https://github.com/pratyush/oblix#090d19c2bbb8b320cd601e581ffa28e7af0034b2"
+source = "git+https://github.com/pratyush/oblix#e8b5cffa935d5d024e092b5f75b2243be346da8d"
 dependencies = [
  "generic-array 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "oblivious-primitives 0.1.0 (git+https://github.com/pratyush/oblix)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
  "subtle 0.7.0 (git+https://github.com/pratyush/subtle?branch=remove-generic-impls)",
 ]
 
@@ -148,7 +139,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "oblivious-primitives"
 version = "0.1.0"
-source = "git+https://github.com/pratyush/oblix#090d19c2bbb8b320cd601e581ffa28e7af0034b2"
+source = "git+https://github.com/pratyush/oblix#e8b5cffa935d5d024e092b5f75b2243be346da8d"
 dependencies = [
  "fast-bytes 0.1.0 (git+https://github.com/pratyush/oblix)",
  "subtle 0.7.0 (git+https://github.com/pratyush/subtle?branch=remove-generic-impls)",
@@ -157,23 +148,22 @@ dependencies = [
 [[package]]
 name = "ods"
 version = "0.1.0"
-source = "git+https://github.com/pratyush/oblix#090d19c2bbb8b320cd601e581ffa28e7af0034b2"
+source = "git+https://github.com/pratyush/oblix#e8b5cffa935d5d024e092b5f75b2243be346da8d"
 dependencies = [
- "corepack 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "flat_map 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "generic-array 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "linear-map 1.2.0 (git+https://github.com/pratyush/oblix)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "path-oram 0.1.0 (git+https://github.com/pratyush/oblix)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
  "subtle 0.7.0 (git+https://github.com/pratyush/subtle?branch=remove-generic-impls)",
 ]
 
 [[package]]
 name = "osm"
 version = "0.1.0"
-source = "git+https://github.com/pratyush/oblix#090d19c2bbb8b320cd601e581ffa28e7af0034b2"
+source = "git+https://github.com/pratyush/oblix#e8b5cffa935d5d024e092b5f75b2243be346da8d"
 dependencies = [
  "avl 0.1.0 (git+https://github.com/pratyush/oblix)",
  "fast-bytes 0.1.0 (git+https://github.com/pratyush/oblix)",
@@ -184,8 +174,8 @@ dependencies = [
  "oblivious-primitives 0.1.0 (git+https://github.com/pratyush/oblix)",
  "ods 0.1.0 (git+https://github.com/pratyush/oblix)",
  "path-oram 0.1.0 (git+https://github.com/pratyush/oblix)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
  "subtle 0.7.0 (git+https://github.com/pratyush/subtle?branch=remove-generic-impls)",
 ]
 
@@ -197,7 +187,6 @@ dependencies = [
  "ods 0.1.0 (git+https://github.com/pratyush/oblix)",
  "osm 0.1.0 (git+https://github.com/pratyush/oblix)",
  "path-oram 0.1.0 (git+https://github.com/pratyush/oblix)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
  "sgx_tstd 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "sgx_types 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -205,7 +194,7 @@ dependencies = [
 [[package]]
 name = "path-oram"
 version = "0.1.0"
-source = "git+https://github.com/pratyush/oblix#090d19c2bbb8b320cd601e581ffa28e7af0034b2"
+source = "git+https://github.com/pratyush/oblix#e8b5cffa935d5d024e092b5f75b2243be346da8d"
 dependencies = [
  "arrayvec 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "cc 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -217,8 +206,8 @@ dependencies = [
  "linear-map 1.2.0 (git+https://github.com/pratyush/oblix)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "oblivious-primitives 0.1.0 (git+https://github.com/pratyush/oblix)",
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "spin 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "splay_tree 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -248,15 +237,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde"
-version = "1.0.70"
+version = "1.0.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.71"
+version = "1.0.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -341,7 +330,7 @@ name = "splay_tree"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -385,11 +374,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [metadata]
 "checksum arrayvec 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)" = "a1e964f9e24d588183fcb43503abda40d288c8657dfc27311516ce2f05675aef"
 "checksum avl 0.1.0 (git+https://github.com/pratyush/oblix)" = "<none>"
-"checksum bigint 4.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "da1dde4308822ffaa13665757273a1b787481212f3f9b1c470a864b179a01f1b"
+"checksum bigint 4.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ebecac13b3c745150d7b6c3ea7572d372f09d627c2077e893bf26c5c7f70d282"
 "checksum byteorder 1.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "8389c509ec62b9fe8eca58c502a0acaf017737355615243496cde4994f8fa4f9"
 "checksum cc 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)" = "2119ea4867bd2b8ed3aecab467709720b2d55b1bcfe09f772fd68066eaf15275"
 "checksum cfg-if 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0c4e7bb64a8ebb0d856483e1e682ea3422f883c5f5615a90d51a2c82fe87fdd3"
-"checksum corepack 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6a0fe61fd5817d0c94d1a36c70cdcd0c40d3cebe0f6a390e9a030ed4206775a5"
 "checksum crunchy 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "a2f4a431c5c9f662e1200b7c7f02c34e91361150e382089a8f2dec3ba680cbda"
 "checksum digest 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e5b29bf156f3f4b3c4f610a25ff69370616ae6e0657d416de22645483e72af0a"
 "checksum either 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3be565ca5c557d7f59e7cfcf1844f9e3033650c929c6566f511e8005f205c1d0"
@@ -409,8 +397,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)" = "ee5697238f0d893c7f0ecc59c0999f18d2af85e424de441178bcacc9f9e6cf67"
 "checksum quote 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)" = "ed7d650913520df631972f21e104a4fa2f9c82a14afc65d17b388a2e29731e7c"
 "checksum redox_syscall 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)" = "c214e91d3ecf43e9a4e41e578973adeb14b474f2bee858742d127af75a0112b1"
-"checksum serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)" = "0c3adf19c07af6d186d91dae8927b83b0553d07ca56cbf7f2f32560455c91920"
-"checksum serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)" = "b719c6d5e9f73fbc37892246d5852333f040caa617b8873c6aced84bcb28e7bb"
+"checksum serde 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)" = "98b72cb11d2f90a50789254281aac9211092fd1ba87e067b45c94652fffe1cf1"
+"checksum serde_derive 1.0.72 (registry+https://github.com/rust-lang/crates.io-index)" = "ccb40724ad173e215530b5217ffba55cdf34ef811e90023a43c948c5b04dc41f"
 "checksum sgx_alloc 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a51a272a8425fb6d86e5dfa58a004871da259e8052038230609ef140ec2fed15"
 "checksum sgx_build_helper 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ee53e3b297178bf5a3b6275015020875149e12424d7d2ec01a2f0cfcc475b878"
 "checksum sgx_tprotected_fs 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2e7b6df533633f4759d9879ebaf7fd4d6260c6fe4b92b6d710f3ba12c591102b"
