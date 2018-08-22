@@ -43,6 +43,7 @@ extern crate generic_array;
 use generic_array::typenum::U160;
 use osm::{OsmClient, STDOsmClient};
 use path_oram::{LocalServer, PathDOramClient};
+use std::slice;
 
 use sgx_types::*;
 
@@ -71,6 +72,30 @@ pub extern "C" fn osm_search(osm_client_ref: usize, server_ref: usize, key_ref: 
     let num_reads = 2000;
     for _ in 0..num_reads {
         osm_client.search(&read_key, 0, range, server).unwrap();
+    }
+
+    sgx_status_t::SGX_SUCCESS
+}
+
+#[no_mangle]
+pub extern "C" fn osm_insert_many(osm_client_ref: usize, server_ref: usize, keys_ref: usize, keys_len: usize, values_ref: usize, values_len: usize) -> sgx_status_t {
+
+    let osm_client = unsafe {
+        let osm_client = osm_client_ref as (*const STDOsmClient<Key, Value, PathDOramClient<U160>>);
+        &(*osm_client)
+    };
+
+    let server = unsafe {
+        let server = server_ref as *mut LocalServer<PathDOramClient<U160>>;
+        &mut(*server)
+    };
+
+    let keys = unsafe { slice::from_raw_parts(keys_ref as *const Key, keys_len) };
+    let values = unsafe { slice::from_raw_parts(values_ref as *const Key, values_len) };
+
+    let mut osm_client = osm_client.clone();
+    for (&k, &v) in keys.iter().zip(values.iter()) {
+        osm_client.insert(k, v, server).unwrap();
     }
 
     sgx_status_t::SGX_SUCCESS

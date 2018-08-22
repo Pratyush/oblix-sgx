@@ -17,6 +17,7 @@ generic-array = { version = "0.8" }
 flat_map = { version = "0.0.6", default-features = false }
 rand = { version = "0.4" }
 structopt = { version = "0.2" }
+clap = { version = "2" }
 
 [profile.release]
 lto = true

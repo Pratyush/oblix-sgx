@@ -18,78 +18,99 @@ type Value = u64;
 
 
 extern {
-    fn osm_search(eid: sgx_enclave_id_t, retval: *mut sgx_status_t,
-                     osm_client_ref: usize, server_ref: usize, key_ref: usize, range: usize) -> sgx_status_t;
+    fn osm_search(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        osm_client_ref: usize,
+        server_ref: usize,
+        key_ref: usize,
+        range: usize
+    ) -> sgx_status_t;
+
+    fn osm_insert_many(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        osm_client_ref: usize,
+        server_ref: usize,
+        key_ref: usize,
+        key_len: usize,
+        vals_ref: usize,
+        vals_len: usize
+    ) -> sgx_status_t;
 }
 
-//pub fn insert_many(init_size: usize, n_keys: usize) {
-//    type Key = u64;
-//    type Value = u64;
+pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx_status_t {
+    println!(
+        "\n[+] Size: {}, Number of keys: {}",
+        init_size, n_keys
+    );
+    let mut map = Vec::with_capacity(n_keys);
+    for _ in 0..init_size {
+        let key = rand::random::<Key>();
+        let value = rand::random::<Value>();
+        map.push((key, value));
 
-//    let mut map = Vec::with_capacity(n_keys);
-//    for _ in 0..init_size {
-//        let key = rand::random::<Key>();
-//        let value = rand::random::<Value>();
-//        map.push((key, value));
+    }
+    println!("[+] Done with map");
 
-//    }
-//    println!("Done with map");
+    let (mut osm_client, mut server) =
+        STDOsmClient::<Key, Value, PathDOramClient<U160>>::setup(map.len() * 2, map)
+            .unwrap();
+    println!("[+] Done with setup");
 
-//    let (mut osm_client, mut server) =
-//        STOsmClient::<Key, Value, PathOramClient<U160>>::setup(map.len() * 2, map)
-//            .unwrap();
-//    println!("Done with setup");
+    let mut keys = Vec::with_capacity(n_keys);
+    let mut vals = Vec::with_capacity(n_keys);
+    for _ in 0..n_keys {
+        let key = rand::random::<Key>();
+        let val = rand::random::<Value>();
+        keys.push(key);
+        vals.push(val);
+    }
 
-//    let mut keys = Vec::with_capacity(n_keys);
-//    let mut vals = Vec::with_capacity(n_keys);
-//    for _ in 0..n_keys {
-//        let key = rand::random::<Key>();
-//        let val = rand::random::<Value>();
-//        keys.push(key);
-//        vals.push(val);
-//    }
-
-//    let mut rng = OsRng::new().unwrap();
-//    let read_key = rng.choose(&keys).unwrap();
-//    // Stash warm-up
-//    for _ in 0..30000 {
-//        let _ = osm_client.search(&read_key, 0, 1, &mut server);
-//    }
+    let mut rng = OsRng::new().unwrap();
+    let read_key = rng.choose(&keys).unwrap();
+    // Stash warm-up
+    for _ in 0..30000 {
+        let _ = osm_client.search(&read_key, 0, 1, &mut server);
+    }
 
 
-//    // *****
-//    // *****
-//    // *****
-//    // Part inside here should be executed in the enclave.
-//    let osm_client_ref = &osm_client as *const STOsmClient<_, _, _> as u64;
-//    let server_ref = &server as *const LocalServer<PathOramClient<U160>> as u64;
-//    let key_ref = &keys as *const Vec<Key> as u64;
-//    let val_ref = &vals as *const Vec<Value> as u64;
+    // *****
+    // *****
+    // *****
+    // Part inside here should be executed in the enclave.
+    let osm_client_ref = &osm_client as *const STDOsmClient<_, _, _> as u64;
+    let server_ref = &mut server as *mut LocalServer<PathDOramClient<U160>> as u64;
 
-//    //println!("Loaded enclave.");
-//    let read_start = time::precise_time_s();
-//    //println!("Started reading");
-//    // let _ = tcs::enter(
-//    //     &mut mapping.tcss()[0],
-//    //     |_total_capacity: u64, _data_addr: u64, _value: u64, _p4: u64, _p5: u64| 5678,
-//    //     ECall::InsertMany as u64,
-//    //     osm_client_ref,
-//    //     server_ref,
-//    //     key_ref,
-//    //     val_ref,
-//    // );
-//    let read_stop = time::precise_time_s();
-//    let avg_time = (read_stop - read_start) / n_keys as f64;
-//    println!(
-//        "\nCapacity: {}, Inserted keys: {}, avg. time (s): {}",
-//        init_size * 2,
-//	    n_keys,
-//        avg_time
-//    );
-//    // *****
-//    // *****
-//    // *****
-//}
+    //println!("Loaded enclave.");
+    let read_start = time::precise_time_s();
+    let mut retval = sgx_status_t::SGX_SUCCESS; 
+    let result = unsafe {
+        osm_insert_many(
+            enclave.geteid(),
+            &mut retval,
+            osm_client_ref as usize,
+            server_ref as usize,
+            keys.as_ptr() as u64 as usize,
+            keys.len(),
+            vals.as_ptr() as u64 as usize,
+            vals.len(),
+        )
+    };
+    
+    let read_stop = time::precise_time_s();
+    let avg_time = (read_stop - read_start) / n_keys as f64;
+    println!(
+        "[+] Capacity: {}, Inserted keys: {}, avg. time (s): {}",
+        init_size * 2,
+	    n_keys,
+        avg_time
+    );
+    result
+    // *****
+    // *****
+    // *****
+}
 
 //pub fn insert_one(init_size: usize, n_keys: usize) {
 //    type Key = u64;
@@ -234,7 +255,6 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
 
     let mut all_keys = Vec::with_capacity(n_keys);
     let mut map = Vec::<(Key, Value)>::with_capacity(n_keys * vals_per_key);
-    let mut read_key = 0;
     for _ in 0..n_keys {
         let key = rand::random::<Key>();
         for _ in 0..vals_per_key {
@@ -246,10 +266,10 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
     println!("[+] Done with map");
 
     let mut rng = OsRng::new().unwrap();
-    let read_key = rng.choose(&all_keys).unwrap();
+    let read_key: &u64 = rng.choose(&all_keys).unwrap();
 
     let l = map.len();
-    let (mut osm_client, mut server) =
+    let (osm_client, mut server) =
         STDOsmClient::<Key, Value, PathDOramClient<U160>>::setup(map.len(), map)
             .unwrap();
     println!("[+] Done with setup: {}", l);
@@ -265,7 +285,7 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
     // *****
     // Part inside here should be executed in the enclave.
     let osm_client_ref = &osm_client as *const STDOsmClient<_, _, _> as u64;
-    let server_ref = &server as *const LocalServer<PathDOramClient<U160>> as u64;
+    let server_ref = &mut server as *mut LocalServer<PathDOramClient<U160>> as u64;
     let key_ref = read_key as *const Key as u64;
 
     let num_reads: usize = 2000;

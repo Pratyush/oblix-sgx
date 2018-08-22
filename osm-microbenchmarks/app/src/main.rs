@@ -46,16 +46,112 @@ use std::io::{Read, Write};
 use std::fs;
 use std::path;
 use std::env;
+use std::path::PathBuf;
 
 mod microbenchmarks;
 
+#[derive(StructOpt, Debug)]
+/// Run Signal benchmarks
+#[structopt(name = "signal")]
+struct Signal {
+    #[structopt(help = "Initial size of the storage", default_value = "1024")]
+    initial_size: usize
+}
 
+#[derive(StructOpt, Debug)]
+/// Run Key Transparency benchmarks
+#[structopt(name = "kt")]
+struct KeyTransparency {
+    #[structopt(help = "Initial size of the storage", default_value = "1024")]
+    initial_size: usize
+}
+
+#[derive(StructOpt, Debug)]
+/// Run Searchable Encryption benchmarks
+#[structopt(name = "se")]
+struct SearchableEncryption {
+    #[structopt(help = "Path to index", default_value = "enron-index.json")]
+    index: String,
+    #[structopt(help = "Number of results to return", default_value = "10")]
+    number_of_results: usize,
+    #[structopt(help = "Number of documents to insert", default_value = "10")]
+    number_of_documents: usize,
+}
+
+#[derive(StructOpt, Debug)]
+struct OsmCommand {
+    #[structopt(subcommand)]
+    osm: OsmMicrobenchmarks
+}
+
+#[derive(StructOpt, Debug)]
+/// Run DOSM microbenchmarks
+#[structopt(name = "dosm")]
+enum OsmMicrobenchmarks {
+
+    #[structopt(name = "range")]
+    Range,
+
+    #[structopt(name = "insert-many")]
+    InsertMany,
+
+    #[structopt(name = "insert-one")]
+    InsertOne { 
+        #[structopt(help = "Number of keys to insert", default_value = "1")]
+        number_of_keys_to_insert: usize, 
+        #[structopt(help = "Initial size of the storage", default_value = "1024")]
+        initial_size: usize
+    },
+
+    #[structopt(name = "delete-one")]
+    DeleteOne { 
+        #[structopt(help = "Number of keys to delete", default_value = "1")]
+        number_of_keys_to_delete: usize,
+        #[structopt(help = "Initial size of the storage", default_value = "1024")]
+        initial_size: usize,
+    },
+}
+
+#[derive(StructOpt, Debug)]
+struct OramCommand {
+    #[structopt(subcommand)]
+    oram: OramMicrobenchmarks
+}
+
+#[derive(StructOpt, Debug)]
+/// Run DORAM microbenchmarks
+#[structopt(name = "doram")]
+enum OramMicrobenchmarks {
+    
+    #[structopt(name = "zerotrace")]
+    ZeroTrace { 
+        #[structopt(help = "Initial size of the storage", default_value = "1024")]
+        initial_size: usize,
+    },
+    #[structopt(name = "access")]
+    OramAccess { 
+        #[structopt(help = "Initial size of the storage", default_value = "1024")]
+        initial_size: usize,
+        #[structopt(help = "Block size", default_value = "160")]
+        block_size: usize,
+    },
+}
+
+#[derive(StructOpt, Debug)]
+enum OptionsCommand {
+    Osm(OsmCommand),
+    Oram(OramCommand),
+    SE(SearchableEncryption),
+    Signal(Signal),
+    KT(KeyTransparency),
+}
 
 #[derive(StructOpt, Debug)]
 struct Options {
-     #[structopt(short = "r", long = "range", help = "Number of values to retrieve", default_value = "1")]
-     range: usize,
+    #[structopt(subcommand)]
+    options: OptionsCommand
 }
+
 
 static ENCLAVE_FILE: &'static str = "enclave.signed.so";
 static ENCLAVE_TOKEN: &'static str = "enclave.token";
@@ -129,7 +225,7 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
 }
 
 fn main() { 
-
+    let options = Options::from_args();
     let enclave = match init_enclave() {
         Ok(r) => {
             println!("[+] Init Enclave Successful {}!", r.geteid());
@@ -140,12 +236,112 @@ fn main() {
             return;
         },
     };
+    let mut result;
+    result = match options.options {
+        OptionsCommand::Osm(inner) => {
+            match inner.osm {
+                OsmMicrobenchmarks::Range => {
+                    println!("Running osm::range: \n
+                             Retrieving 10 results for 2^24 key-value pairs, with 1 - 2^8 values per key \n");
+                    let mut actual_result = 0;
+                    for i in 16..24 {
+                        actual_result += microbenchmarks::search(&enclave, 1 << i, 1 << (24 - i), 10).from_key();
+                    }
+                    println!("\n----------------------------\n");
+                    println!("Retrieving 1, 10, 20, ..., 60 results for 2^24 key-value pairs, with 2^10 values per key \n");
+                    for i in vec![1, 10, 20, 30, 40, 50, 60] {
+                        actual_result += microbenchmarks::search(&enclave, 1 << (24 - 10), 1 << 10, i).from_key();
+                    }
+                    sgx_status_t::from_repr(actual_result).unwrap()
 
-    let options = Options::from_args();
+                }
+                OsmMicrobenchmarks::InsertMany => {
+                    println!("Running osm::insert_many:\n
+                             Inserting 100 items into storage of size 2^16 - 2^25");
+                    let mut actual_result = 0;
+                    for i in 16..25 {
+                        // If the operation is successful, it returns 0.
+                        actual_result += microbenchmarks::insert_many(&enclave, 1 << i, 100).from_key();
+                    }
+                    println!("\n----------------------------\n");
+                    sgx_status_t::from_repr(actual_result).unwrap()
+                }
+                OsmMicrobenchmarks::InsertOne { number_of_keys_to_insert, initial_size} => {
+                    unimplemented!()
+                    // println!("Running osm::insert_one");
+                    // let result = microbenchmarks::insert_one(&enclave, initial_size, number_of_keys_to_insert);
+                    // println!("\n----------------------------\n");
+                    // result
 
-    let mut retval = sgx_status_t::SGX_SUCCESS; 
+                }
+                OsmMicrobenchmarks::DeleteOne { number_of_keys_to_delete, initial_size} => {
+                    unimplemented!()
+                    // println!("Running osm::insert_one");
+                    // let result = microbenchmarks::delete_one(&enclave, initial_size, number_of_keys_to_delete);
+                    // println!("\n----------------------------\n");
+                    // result
+                }
+            }
+        }
+        OptionsCommand::Oram(inner) => {
+            match inner.oram {
+                OramMicrobenchmarks::ZeroTrace { initial_size } => {
+                    // println!("Running ZeroTrace");
+                    // let result = microbenchmarks::zerotrace(&enclave, initial_size)
+                    // println!("\n----------------------------\n");
+                    // result
+                    unimplemented!()
+                }
+                OramMicrobenchmarks::OramAccess { block_size, initial_size } => {
+                    // println!("Running DORAM Access");
+                    // println!("\nItems: {}, Blocksize: {}", num, size);
+                    // let result = microbenchmarks::doram(&enclave, initial_size, block_size as _);
+                    // println!("\n----------------------------\n");
+                    // result
+                    unimplemented!()
+                    
+                }
+            }
+        }
+        OptionsCommand::SE(inner) => {
+            // TODO
+            // println!("Running SE benchmarks on the Enron dataset (specifically `kaminski-v`): average of 100 measurements");
+            // let index_location = inner.index;
+            // let number_of_results = inner.number_of_results;
+            // let number_of_documents = inner.number_of_documents;
+            // let result1 = enron::search(&enclave, &file, number_of_results).from_key();
+            // let result2 = enron::insert(&enclave, &file, number_of_documents).from_key();
+            // sgx_status_t::from_repr(result1 + result2).unwrap()
+            unimplemented!()
+        }
+        OptionsCommand::Signal(inner) => {
+            // TODO
+            // println!("Running Signal benchmarks");
+            // let mut i = inner.initial_size;
+            // let mut actual_result = 0;
+            // while i >= 10000 {
+            //     let inner_result = signal::run(&enclave, i);
+            //     actual_result += result.from_key();
+            //     i /= 2;
+            // }
+            // sgx_status_t::from_repr(actual_result).unwrap()
+            unimplemented!()
+        }
+        OptionsCommand::KT(inner) => {
+            // TODO
+            // println!("Running Key Transparency benchmarks");
+            // let mut i = inner.initial_size;
+            // let mut actual_result = 0;
+            // while i >= 10000 {
+            //     let inner_result = key_transparency::run(&enclave, i);
+            //     actual_result += result.from_key();
+            //     i /= 2;
+            // }
+            // sgx_status_t::from_repr(actual_result).unwrap()
+            unimplemented!()
+        }
+    };
 
-    let result = microbenchmarks::search(&enclave, 1 << (24 - 10), 1 << 10, options.range);
 
     match result {
         sgx_status_t::SGX_SUCCESS => {},
