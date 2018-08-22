@@ -70,9 +70,9 @@ pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx
     let mut rng = OsRng::new().unwrap();
     let read_key = rng.choose(&keys).unwrap();
     // Stash warm-up
-    for _ in 0..30000 {
-        let _ = osm_client.search(&read_key, 0, 1, &mut server);
-    }
+    // for _ in 0..30000 {
+        // let _ = osm_client.search(&read_key, 0, 1, &mut server);
+    // }
 
 
     // *****

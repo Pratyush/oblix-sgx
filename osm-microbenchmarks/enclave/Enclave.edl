@@ -38,6 +38,6 @@ enclave {
         /* define ECALLs here. */
 		
         public sgx_status_t osm_search(size_t osm_client, size_t server, size_t key, size_t range);
-        public sgx_status_t osm_insert_many(size_t osm_client, size_t server, size_t key_ref, size_t keys_len, size_t vals_ref, size_t, vals_len);
+        public sgx_status_t osm_insert_many(size_t osm_client, size_t server, size_t key_ref, size_t keys_len, size_t vals_ref, size_t vals_len);
     };
 };

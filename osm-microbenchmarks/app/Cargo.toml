@@ -8,9 +8,9 @@ build = "build.rs"
 sgx_types = { version = "1.0.1" }
 sgx_urts = { version = "1.0.1" }
 
-path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = [ "std", "standard_setup" ] }
-ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std"] }
-osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false, features = ["std"] }
+path-oram = { path = "/root/oblix-system/path-oram", version = "0.1", default-features = false, features = [ "std", "standard_setup" ] }
+ods = { path = "/root/oblix-system/ods", version = "0.1", default-features = false, features = ["std"] }
+osm = { path = "/root/oblix-system/osm", version = "0.1", default-features = false, features = ["std"] }
 
 time = "*"
 generic-array = { version = "0.8" }

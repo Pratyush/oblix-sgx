@@ -8,9 +8,9 @@ name = "osm_microbenchmarks"
 crate-type = ["staticlib"]
 
 [dependencies]
-path-oram = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false }
-ods = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false }
-osm = { git = "https://github.com/pratyush/oblix", version = "0.1", default-features = false }
+path-oram = { path = "/root/oblix-system/path-oram", version = "0.1", default-features = false }
+ods = { path = "/root/oblix-system/ods", version = "0.1", default-features = false }
+osm = { path = "/root/oblix-system/osm", version = "0.1", default-features = false }
 generic-array = { version = "0.8", default-features = false}
 
 [features]
