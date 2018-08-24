@@ -1,16 +1,17 @@
-use generic_array::typenum::{U8, U16, U32, U64, U128, U160, U200, U256, U512};
+use generic_array::typenum::{U8, U16, U32, U64, U128, U160, U256, U512};
 use generic_array::ArrayLength;
 
 use rand;
 use time;
 use osm::{OsmClient, STDOsmClient};
-use path_oram::{LocalServer, PathDOramClient, doubly_oblivious::position_map::PositionMap, OramKey, OramPos};
+use path_oram::{LocalServer, PathDOramClient, doubly_oblivious::position_map::PositionMap, OramKey, OramPos, NoPos};
 use path_oram::{TreeOramClient, BlockContent, EncN, EncBlkSize};
 use path_oram::oram_crypto::{Encryptor, MerkleTree};
 use rand::{OsRng, Rng};
 
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
+use pretty_env_logger;
 
 type Key = u64;
 type Value = u64;
@@ -37,6 +38,43 @@ extern {
         vals_ref: usize,
         vals_len: usize
     ) -> sgx_status_t;
+
+    fn osm_insert_one(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        osm_client_ref: usize,
+        server_ref: usize,
+        key_ref: usize,
+        value_ref: usize
+    ) -> sgx_status_t;
+
+    fn osm_delete_one(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        osm_client_ref: usize,
+        server_ref: usize,
+        key_ref: usize,
+        value_ref: usize
+    ) -> sgx_status_t;
+
+    fn oram_zerotrace(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        oram_client_ref: usize,
+        server_ref: usize,
+        key_and_pos_ref: usize,
+        key_and_pos_len: usize
+    ) -> sgx_status_t;
+
+    fn oram_access(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
+        oram_client_ref: usize,
+        server_ref: usize,
+        key_and_pos_ref: usize,
+        key_and_pos_len: usize,
+        block_size: usize,
+    ) -> sgx_status_t;
 }
 
 pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx_status_t {
@@ -53,7 +91,7 @@ pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx
     }
     println!("[+] Done with map");
 
-    let (mut osm_client, mut server) =
+    let (osm_client, mut server) =
         STDOsmClient::<Key, Value, PathDOramClient<U160>>::setup(map.len() * 2, map)
             .unwrap();
     println!("[+] Done with setup");
@@ -67,8 +105,8 @@ pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx
         vals.push(val);
     }
 
-    let mut rng = OsRng::new().unwrap();
-    let read_key = rng.choose(&keys).unwrap();
+    // let mut rng = OsRng::new().unwrap();
+    // let read_key = rng.choose(&keys).unwrap();
     // Stash warm-up
     // for _ in 0..30000 {
         // let _ = osm_client.search(&read_key, 0, 1, &mut server);
@@ -84,7 +122,7 @@ pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx
 
     //println!("Loaded enclave.");
     let read_start = time::precise_time_s();
-    let mut retval = sgx_status_t::SGX_SUCCESS; 
+    let mut retval = sgx_status_t::SGX_SUCCESS;
     let result = unsafe {
         osm_insert_many(
             enclave.geteid(),
@@ -97,7 +135,7 @@ pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx
             vals.len(),
         )
     };
-    
+
     let read_stop = time::precise_time_s();
     let avg_time = (read_stop - read_start) / n_keys as f64;
     println!(
@@ -112,140 +150,144 @@ pub fn insert_many(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx
     // *****
 }
 
-//pub fn insert_one(init_size: usize, n_keys: usize) {
-//    type Key = u64;
-//    type Value = u64;
+pub fn insert_one(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx_status_t {
+    println!(
+        "\n[+] Size: {}, Number of keys: {}",
+        init_size, n_keys
+    );
+    let mut map = Vec::with_capacity(init_size);
+    for _ in 0..init_size {
+        let key = rand::random::<Key>();
+        let value = rand::random::<Value>();
+        map.push((key, value));
 
-//    let mut map = Vec::with_capacity(init_size);
-//    for _ in 0..init_size {
-//        let key = rand::random::<Key>();
-//        let value = rand::random::<Value>();
-//        map.push((key, value));
+    }
+    println!("Done with map");
 
-//    }
-//    println!("Done with map");
+    let (osm_client, mut server) =
+        STDOsmClient::<Key, Value, PathDOramClient<U160>>::setup(init_size, map)
+            .unwrap();
+    println!("Done with setup");
 
-//    let (mut osm_client, mut server) =
-//        STOsmClient::<Key, Value, PathOramClient<U160>>::setup(init_size, map)
-//            .unwrap();
-//    println!("Done with setup");
+    let mut keys = Vec::with_capacity(n_keys);
+    let mut vals = Vec::with_capacity(n_keys);
+    for _ in 0..n_keys {
+        let key = rand::random::<Key>();
+        let val = rand::random::<Value>();
+        keys.push(key);
+        vals.push(val);
+    }
 
-//    let mut keys = Vec::with_capacity(n_keys);
-//    let mut vals = Vec::with_capacity(n_keys);
-//    for _ in 0..n_keys {
-//        let key = rand::random::<Key>();
-//        let val = rand::random::<Value>();
-//        keys.push(key);
-//        vals.push(val);
-//    }
-
-//    let mut rng = OsRng::new().unwrap();
-//    let read_key = rng.choose(&keys).unwrap();
-//    // Stash warm-up
-//    for _ in 0..30000 {
-//        let _ = osm_client.search(&read_key, 0, 1, &mut server);
-//    }
+    // let mut rng = OsRng::new().unwrap();
+    // let read_key = rng.choose(&keys).unwrap();
+    // Stash warm-up
+    // for _ in 0..30000 {
+    //     let _ = osm_client.search(&read_key, 0, 1, &mut server);
+    // }
 
 
-//    // *****
-//    // *****
-//    // *****
-//    // Part inside here should be executed in the enclave.
-//    let osm_client_ref = &osm_client as *const STOsmClient<_, _, _> as u64;
-//    let server_ref = &server as *const LocalServer<PathOramClient<U160>> as u64;
-//    let mut times = Vec::<f64>::with_capacity(n_keys);
-//    for (k, v) in keys.iter().zip(vals.iter()) {
-//        let key_ref = k as *const Key as u64;
-//        let val_ref = v as *const Value as u64;
+    // *****
+    // *****
+    // *****
+    // Part inside here should be executed in the enclave.
+    let osm_client_ref = &osm_client as *const STDOsmClient<_, _, _> as usize;
+    let server_ref = &mut server as *mut LocalServer<PathDOramClient<U160>> as usize;
+    let mut times = Vec::<f64>::with_capacity(n_keys);
+    let mut result = sgx_status_t::SGX_SUCCESS;
+    let mut retval = sgx_status_t::SGX_SUCCESS;
+    for (k, v) in keys.iter().zip(vals.iter()) {
+        let key_ref = k as *const Key as u64;
+        let val_ref = v as *const Value as u64;
 
-//        //println!("Loaded enclave.");
-//        let read_start = time::precise_time_s();
-//        //println!("Started reading");
-//        // let _ = tcs::enter(
-//        //     &mut mapping.tcss()[0],
-//        //     |_total_capacity: u64, _data_addr: u64, _value: u64, _p4: u64, _p5: u64| 5678,
-//        //     ECall::InsertOne as u64,
-//        //     osm_client_ref,
-//        //     server_ref,
-//        //     key_ref,
-//        //     val_ref,
-//        // );
-//        let read_stop = time::precise_time_s();
-//        times.push(read_stop - read_start);
-//    }
-//    println!(
-//        "\nSize: {}, Keys: {}, times (s): {:?}",
-//        init_size, n_keys, times
-//    );
-//    // *****
-//    // *****
-//    // *****
-//}
+        //println!("Loaded enclave.");
+        let read_start = time::precise_time_s();
+        //println!("Started reading");
+        result = unsafe { osm_insert_one(
+            enclave.geteid(),
+            &mut retval,
+            osm_client_ref,
+            server_ref,
+            key_ref as usize,
+            val_ref as usize,
+        )};
+        let read_stop = time::precise_time_s();
+        times.push(read_stop - read_start);
+    }
+    println!(
+        "\nSize: {}, Keys: {}, times (s): {:?}",
+        init_size, n_keys, times
+    );
+    // *****
+    // *****
+    // *****
+    result
+}
 
-//pub fn delete_one(mapping: &mut Mapping, init_size: usize, n_keys: usize) {
-//    type Key = u64;
-//    type Value = u64;
+pub fn delete_one(enclave: &SgxEnclave, init_size: usize, n_keys: usize) -> sgx_status_t {
 
-//    let mut map = Vec::with_capacity(init_size);
-//    let mut keys = Vec::with_capacity(n_keys);
-//    let mut vals = Vec::with_capacity(n_keys);
-//    for _ in 0..init_size {
-//        let key = rand::random::<Key>();
-//        let value = rand::random::<Value>();
-//        map.push((key.clone(), value.clone()));
-//        if keys.len() < n_keys {
-//            keys.push(key);
-//            vals.push(value);
-//        }
-//    }
-//    println!("Done with map");
+    let mut map = Vec::with_capacity(init_size);
+    let mut keys = Vec::with_capacity(n_keys);
+    let mut vals = Vec::with_capacity(n_keys);
+    for _ in 0..init_size {
+        let key = rand::random::<Key>();
+        let value = rand::random::<Value>();
+        map.push((key.clone(), value.clone()));
+        if keys.len() < n_keys {
+            keys.push(key);
+            vals.push(value);
+        }
+    }
+    println!("Done with map");
 
-//    let (mut osm_client, mut server) =
-//        STOsmClient::<Key, Value, PathOramClient<U160>>::setup(init_size, map)
-//            .unwrap();
-//    println!("Done with setup");
+    let (osm_client, mut server) =
+        STDOsmClient::<Key, Value, PathDOramClient<U160>>::setup(init_size, map)
+            .unwrap();
+    println!("Done with setup");
 
-//    let mut rng = OsRng::new().unwrap();
-//    let read_key = rng.choose(&keys).unwrap();
-//    // Stash warm-up
-//    for _ in 0..30000 {
-//        let _ = osm_client.search(&read_key, 0, 1, &mut server);
-//    }
+    // let mut rng = OsRng::new().unwrap();
+    // let read_key = rng.choose(&keys).unwrap();
+    // Stash warm-up
+    // for _ in 0..30000 {
+    //     let _ = osm_client.search(&read_key, 0, 1, &mut server);
+    // }
 
-//    // *****
-//    // *****
-//    // *****
-//    // Part inside here should be executed in the enclave.
-//    let osm_client_ref = &osm_client as *const STOsmClient<_, _, _> as u64;
-//    let server_ref = &server as *const LocalServer<PathOramClient<U160>> as u64;
-//    let mut times = Vec::<f64>::with_capacity(n_keys);
-//    for (k, v) in keys.iter().zip(vals.iter()) {
-//        let key_ref = k as *const Key as u64;
-//        let val_ref = v as *const Value as u64;
+    // *****
+    // *****
+    // *****
+    // Part inside here should be executed in the enclave.
+    let osm_client_ref = &osm_client as *const STDOsmClient<_, _, _> as u64;
+    let server_ref = &mut server as *mut LocalServer<PathDOramClient<U160>> as u64;
+    let mut times = Vec::<f64>::with_capacity(n_keys);
+    let mut result = sgx_status_t::SGX_SUCCESS;
+    for (k, v) in keys.iter().zip(vals.iter()) {
+        let key_ref = k as *const Key as u64;
+        let val_ref = v as *const Value as u64;
 
-//        //println!("Loaded enclave.");
-//        let read_start = time::precise_time_s();
-//        //println!("Started reading");
-//        // let _ = tcs::enter(
-//        //     &mut mapping.tcss()[0],
-//        //     |_total_capacity: u64, _data_addr: u64, _value: u64, _p4: u64, _p5: u64| 5678,
-//        //     ECall::DeleteOne as u64,
-//        //     osm_client_ref,
-//        //     server_ref,
-//        //     key_ref,
-//        //     val_ref,
-//        // );
-//        let read_stop = time::precise_time_s();
-//        times.push(read_stop - read_start);
-//    }
-//    println!(
-//        "\nSize: {}, Keys: {}, times (s): {:?}",
-//        init_size, n_keys, times
-//    );
-//    // *****
-//    // *****
-//    // *****
-//}
+        println!("Loaded enclave.");
+        let mut retval = sgx_status_t::SGX_SUCCESS;
+        let read_start = time::precise_time_s();
+        result = unsafe {
+            osm_delete_one(
+                enclave.geteid(),
+                &mut retval,
+                osm_client_ref as usize,
+                server_ref as usize,
+                key_ref as usize,
+                val_ref as usize,
+            )
+        };
+        let read_stop = time::precise_time_s();
+        times.push(read_stop - read_start);
+    }
+    println!(
+        "\nSize: {}, Keys: {}, times (s): {:?}",
+        init_size, n_keys, times
+    );
+    result
+    // *****
+    // *****
+    // *****
+}
 
 pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: usize) -> sgx_status_t {
     println!(
@@ -292,7 +334,7 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
 
     let read_start = time::precise_time_s();
 
-    let mut retval = sgx_status_t::SGX_SUCCESS; 
+    let mut retval = sgx_status_t::SGX_SUCCESS;
     let result = unsafe {
         osm_search(
             enclave.geteid(),
@@ -318,325 +360,162 @@ pub fn search(enclave: &SgxEnclave, n_keys: usize, vals_per_key: usize, range: u
     // *****
 }
 
-// pub fn zerotrace(mapping: &mut Mapping, n_keys: usize) {
+pub fn zerotrace(enclave: &SgxEnclave, n_keys: usize) -> sgx_status_t {
 
-//     pretty_env_logger::init().unwrap();
-//     let (mut client, mut server): (PathOramClient<U8>, LocalServer<PathOramClient<U8>>) =
-//         setup_oram(n_keys as u64);
-//     println!("After server setup!");
+    pretty_env_logger::init().unwrap();
+    let (mut client, mut server): (PathDOramClient<U8>, LocalServer<PathDOramClient<U8>>) =
+        setup_oram(n_keys as u64);
+    println!("After server setup!");
 
-//     let mut keys_and_positions = vec![];
+    let mut keys_and_positions = vec![];
 
-//     let num_reads: usize = 1000;
-//     for _ in 0..num_reads {
-//         let random_key = OramKey::rand() % (n_keys as u64);
-//         let pos = client.position_for_key(random_key);
+    let num_reads: usize = 1000;
+    for _ in 0..num_reads {
+        let random_key = OramKey::rand() % (n_keys as u64);
+        let pos = client.position_for_key(random_key);
 
-//         assert!(pos != OramPos::NoPos);
-//         keys_and_positions.push((random_key, pos));
-//     }
+        assert!(pos != NoPos);
+        keys_and_positions.push((random_key, pos));
+    }
 
-//     client.pos_map = PositionMap::new();
+    client.pos_map = PositionMap::new(0);
 
-//     // *****
-//     // *****
-//     // *****
-//     // Part inside here should be executed in the enclave.
-//     let client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//     let server_ref = &mut server as *mut LocalServer<PathOramClient<U8>> as u64;
-//     let key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
+    // *****
+    // *****
+    // *****
+    // Part inside here should be executed in the enclave.
+    let client_ref = &client as *const PathDOramClient<_, _, _> as u64;
+    let server_ref = &mut server as *mut LocalServer<PathDOramClient<U8>> as u64;
+    let key_and_pos_ref = keys_and_positions.as_slice().as_ptr() as u64;
+    let key_and_pos_len = keys_and_positions.len();
 
-//     let read_start = time::precise_time_s();
-//     let _ = tcs::enter(
-//         &mut mapping.tcss()[0],
-//         |_total_capacity: u64, _data_addr: u64, _value: u64, _p4: u64, _p5: u64| 5678,
-//         ECall::ZeroTrace as u64,
-//         client_ref,
-//         server_ref,
-//         key_and_pos_ref,
-//         0,
-//     );
+    let read_start = time::precise_time_s();
+    let mut result = sgx_status_t::SGX_SUCCESS;
+    let result = unsafe { oram_zerotrace(
+        enclave.geteid(),
+        &mut result,
+        client_ref as usize,
+        server_ref as usize,
+        key_and_pos_ref as usize,
+        key_and_pos_len,
+    ) };
 
-//     //    let _ = test_search(
-//     //            osm_client_ref,
-//     //            server_ref,
-//     //            read_key,
-//     //            range as u64,
-//     //        );
-//     let read_stop = time::precise_time_s();
-//     let avg_time = (read_stop - read_start) / num_reads as f64;
+    let read_stop = time::precise_time_s();
+    let avg_time = (read_stop - read_start) / num_reads as f64;
 
-//     println!(
-//         "\nSize: {}, time (s): {:?}",
-//         n_keys, avg_time
-//     );
-//     // *****
-//     // *****
-//     // *****
-// }
+    println!(
+        "\nSize: {}, time (s): {:?}",
+        n_keys, avg_time
+    );
+    result
+    // *****
+    // *****
+    // *****
+}
 
-// pub fn doram(mapping: &mut Mapping, n_keys: usize, block_size: u64) {
+pub fn doram(enclave: &SgxEnclave, n_keys: usize, block_size: u64) -> sgx_status_t {
 
-//     pretty_env_logger::init().unwrap();
-//     const NUM_READS: u64  = 1000;
+    pretty_env_logger::init().unwrap();
+    const NUM_READS: u64  = 1000;
 
-//     fn run_in_enclave(mapping: &mut Mapping, client_ref: u64, server_ref: u64,
-//                       key_and_pos_ref: u64, n_keys: usize, block_size: u64) {
-//         // *****
-//         // *****
-//         // *****
-//         // Part inside here should be executed in the enclave.
-//         let read_start = time::precise_time_s();
-//         let ret = tcs::enter(
-//             &mut mapping.tcss()[0],
-//             |_total_capacity: u64, _data_addr: u64, _value: u64, _p4: u64, _p5: u64| 5678,
-//             ECall::DORAMAccess as u64,
-//             client_ref,
-//             server_ref,
-//             key_and_pos_ref,
-//             block_size,
-//         );
-//         let read_stop = time::precise_time_s();
-//         let avg_time = (read_stop - read_start) / NUM_READS as f64;
+    fn run_in_enclave(
+        enclave: &SgxEnclave,
+        client_ref: u64,
+        server_ref: u64,
+        key_and_pos_ref: u64,
+        key_and_pos_len: usize,
+        n_keys: usize,
+        block_size: u64
+    ) -> sgx_status_t {
+        // *****
+        // *****
+        // *****
+        // Part inside here should be executed in the enclave.
+        let read_start = time::precise_time_s();
 
-//         println!(
-//             "\nItems: {}, Blocksize: {}, time (s): {:?}",
-//             n_keys, block_size, avg_time
-//         );
-//         // *****
-//         // *****
-//         // *****
-//     }
+        let ret = unsafe { 
+            oram_access(
+                enclave.geteid(),
+                &mut sgx_status_t::SGX_SUCCESS,
+                client_ref as usize,
+                server_ref as usize,
+                key_and_pos_ref as usize,
+                key_and_pos_len,
+                block_size as usize,
+            )
+        };
+        let read_stop = time::precise_time_s();
+        let avg_time = (read_stop - read_start) / NUM_READS as f64;
 
-//     let client_ref: u64;
-//     let server_ref: u64;
-//     let key_and_pos_ref: u64;
-//     match block_size {
-//         8 => {
-//             let (mut client, mut server): (PathOramClient<U8>, LocalServer<PathOramClient<U8>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
+        println!(
+            "\nItems: {}, Blocksize: {}, time (s): {:?}",
+            n_keys, block_size, avg_time
+        );
+        // *****
+        // *****
+        // *****
+        ret
+    }
 
-//             let mut keys_and_positions = vec![];
+    macro_rules! run_experiment_for_block_size {
+        ($n:expr, $type_n:ty) => {
+            {
+                let (mut client, mut server): (PathDOramClient<$type_n>, LocalServer<PathDOramClient<$type_n>>) =
+                                               setup_oram(n_keys as u64);
+                println!("After server setup!");
+                let mut keys_and_positions = vec![];
+                for _ in 0..NUM_READS {
+                    let random_key = OramKey::rand() % (n_keys as u64);
+                    let pos = client.position_for_key(random_key);
 
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
+                    assert!(pos != NoPos);
+                    keys_and_positions.push((random_key, pos));
+                }
+                client.pos_map = PositionMap::new(0);
+                let client_ref = &client as *const PathDOramClient<_, _, _> as u64;
+                let server_ref = &mut server as *mut LocalServer<PathDOramClient<$type_n>> as u64;
+                let key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
+                let key_and_pos_len = keys_and_positions.len();
+                run_in_enclave(enclave, client_ref, server_ref, key_and_pos_ref, key_and_pos_len, n_keys, $n)
+            }
+        }
+    }
+    match block_size {
+        8 => run_experiment_for_block_size!(8, U8),
+        16 => run_experiment_for_block_size!(16, U16),
+        32 => run_experiment_for_block_size!(32, U32),
+        64 => run_experiment_for_block_size!(64, U64),
+        128 => run_experiment_for_block_size!(128, U128),
+        256 => run_experiment_for_block_size!(256, U256),
+        512 => run_experiment_for_block_size!(512, U512),
+        _   => panic!("Block size not supported, please input a block_size in the range {8, 16, 32, ..., 512}")
+    }
+}
 
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
 
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U8>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//         16 => {
-//             let (mut client, mut server): (PathOramClient<U16>, LocalServer<PathOramClient<U16>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
-
-//             let mut keys_and_positions = vec![];
-
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
-
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
-
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U16>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//         32 => {
-//             let (mut client, mut server): (PathOramClient<U32>, LocalServer<PathOramClient<U32>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
-
-//             let mut keys_and_positions = vec![];
-
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
-
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
-
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U32>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//         64 => {
-//             let (mut client, mut server): (PathOramClient<U64>, LocalServer<PathOramClient<U64>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
-
-//             let mut keys_and_positions = vec![];
-
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
-
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
-
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U64>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//         128 => {
-//             let (mut client, mut server): (PathOramClient<U128>, LocalServer<PathOramClient<U128>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
-
-//             let mut keys_and_positions = vec![];
-
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
-
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
-
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U128>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//         256 => {
-//             let (mut client, mut server): (PathOramClient<U256>, LocalServer<PathOramClient<U256>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
-
-//             let mut keys_and_positions = vec![];
-
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
-
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
-
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U256>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//         512 => {
-//             let (mut client, mut server): (PathOramClient<U512>, LocalServer<PathOramClient<U512>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
-
-//             let mut keys_and_positions = vec![];
-
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
-
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
-
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U512>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//         _ => {
-//             let (mut client, mut server): (PathOramClient<U256>, LocalServer<PathOramClient<U256>>) =
-//                 setup_oram(n_keys as u64);
-//             println!("After server setup!");
-
-//             let mut keys_and_positions = vec![];
-
-//             for _ in 0..NUM_READS {
-//                 let random_key = OramKey::rand() % (n_keys as u64);
-//                 let pos = client.position_for_key(random_key);
-
-//                 assert!(pos != OramPos::NoPos);
-//                 keys_and_positions.push((random_key, pos));
-//             }
-
-//             client.pos_map = PositionMap::new();
-//             client_ref = &client as *const PathOramClient<_, _, _> as u64;
-//             server_ref = &mut server as *mut LocalServer<PathOramClient<U256>> as u64;
-//             key_and_pos_ref = &keys_and_positions as *const Vec<(OramKey, OramPos)> as u64;
-//             run_in_enclave(mapping, client_ref, server_ref, key_and_pos_ref, n_keys, block_size);
-//         }
-//     }
-// }
-
-// fn test_search(p1: u64, p2: u64, p3: &u64, p4: u64) -> u64 {
-//     unsafe {
-//         let osm_client = p1 as *mut STOsmClient<Key, Value, PathOramClient<U160>>;
-//         let ref mut osm_client = *osm_client;
-
-//         let server = p2 as *mut LocalServer<PathOramClient<U160>>;
-//         let ref mut server = *server;
-
-// //        let ptr = p3 as *const Key;
-//         let read_key = p3;
-
-//         let range = p4 as _;
-
-//         read_ranges_for_fixed_values(server, osm_client, read_key, range);
-//     }
-//     return 0;
-// }
-
-// fn read_ranges_for_fixed_values(
-//     server: &mut LocalServer<PathOramClient<U160>>,
-//     osm_client: &mut STOsmClient<Key, Value, PathOramClient<U160>>,
-//     read_key: &Key,
-//     range: usize,
-// ) {
-//     let mut osm_client = osm_client.clone();
-//     let num_reads = 10000;
-//     for _ in 0..num_reads {
-//         osm_client.search(&read_key, 0, range, server).unwrap();
-//     }
-// }
-
-// fn setup_oram<N, C, M>(
-//     num_items: u64
-// ) -> (
-//     PathOramClient<N, C, M>,
-//     LocalServer<PathOramClient<N, C, M>>,
-// )
-//     where
-//         N: ArrayLength<u8> + EncN,
-//         EncBlkSize<N>: ArrayLength<u8>,
-//         C: Encryptor,
-//         M: MerkleTree,
-// {
-//     let (mut client, _) = PathOramClient::new(num_items, vec![]);
-//     let mut oram_data_map = Vec::with_capacity(num_items as usize);
-//     for i in 0..num_items {
-//         oram_data_map.push(
-//             (
-//                 OramKey::new(i),
-//                 BlockContent::with_slice(&[(i as u8 % 128u8); 8]),
-//                 )
-//         );
-//     }
-//     println!("Before oram local setup to read");
-//     let server = client.local_setup(oram_data_map).unwrap();
-//     (client, server)
-// }
+fn setup_oram<N, C, M>(
+    num_items: u64
+) -> (
+    PathDOramClient<N, C, M>,
+    LocalServer<PathDOramClient<N, C, M>>,
+)
+    where
+        N: ArrayLength<u8> + EncN,
+        EncBlkSize<N>: ArrayLength<u8>,
+        C: Encryptor,
+        M: MerkleTree,
+{
+    let (mut client, _) = PathDOramClient::new(num_items, vec![]);
+    let mut oram_data_map = Vec::with_capacity(num_items as usize);
+    for i in 0..num_items {
+        oram_data_map.push(
+            (
+                OramKey::new(i),
+                BlockContent::with_slice(&[(i as u8 % 128u8); 8]),
+            )
+        );
+    }
+    println!("Before oram local setup to read");
+    let server = client.local_setup(oram_data_map).unwrap();
+    (client, server)
+}

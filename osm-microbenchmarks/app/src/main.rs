@@ -36,6 +36,8 @@ extern crate rand;
 extern crate time;
 #[macro_use]
 extern crate structopt;
+extern crate pretty_env_logger;
+extern crate dirs;
 
 use structopt::StructOpt;
 
@@ -45,8 +47,6 @@ use sgx_urts::SgxEnclave;
 use std::io::{Read, Write};
 use std::fs;
 use std::path;
-use std::env;
-use std::path::PathBuf;
 
 mod microbenchmarks;
 
@@ -139,10 +139,15 @@ enum OramMicrobenchmarks {
 
 #[derive(StructOpt, Debug)]
 enum OptionsCommand {
+    #[structopt(name = "osm")]
     Osm(OsmCommand),
+    #[structopt(name = "oram")]
     Oram(OramCommand),
+    #[structopt(name = "se")]
     SE(SearchableEncryption),
+    #[structopt(name = "signal")]
     Signal(Signal),
+    #[structopt(name = "kt")]
     KT(KeyTransparency),
 }
 
@@ -165,7 +170,7 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
     // 
     // try to get the token saved in $HOME */
     let mut home_dir = path::PathBuf::new();
-    let use_token = match env::home_dir() {
+    let use_token = match dirs::home_dir() {
         Some(path) => {
             println!("[+] Home dir is {}", path.display());
             home_dir = path;
@@ -236,8 +241,7 @@ fn main() {
             return;
         },
     };
-    let mut result;
-    result = match options.options {
+    let result = match options.options {
         OptionsCommand::Osm(inner) => {
             match inner.osm {
                 OsmMicrobenchmarks::Range => {
@@ -267,39 +271,34 @@ fn main() {
                     sgx_status_t::from_repr(actual_result).unwrap()
                 }
                 OsmMicrobenchmarks::InsertOne { number_of_keys_to_insert, initial_size} => {
-                    unimplemented!()
-                    // println!("Running osm::insert_one");
-                    // let result = microbenchmarks::insert_one(&enclave, initial_size, number_of_keys_to_insert);
-                    // println!("\n----------------------------\n");
-                    // result
+                    println!("Running osm::insert_one");
+                    let result = microbenchmarks::insert_one(&enclave, initial_size, number_of_keys_to_insert);
+                    println!("\n----------------------------\n");
+                    result
 
                 }
                 OsmMicrobenchmarks::DeleteOne { number_of_keys_to_delete, initial_size} => {
-                    unimplemented!()
-                    // println!("Running osm::insert_one");
-                    // let result = microbenchmarks::delete_one(&enclave, initial_size, number_of_keys_to_delete);
-                    // println!("\n----------------------------\n");
-                    // result
+                    println!("Running osm::insert_one");
+                    let result = microbenchmarks::delete_one(&enclave, initial_size, number_of_keys_to_delete);
+                    println!("\n----------------------------\n");
+                    result
                 }
             }
         }
         OptionsCommand::Oram(inner) => {
             match inner.oram {
                 OramMicrobenchmarks::ZeroTrace { initial_size } => {
-                    // println!("Running ZeroTrace");
-                    // let result = microbenchmarks::zerotrace(&enclave, initial_size)
-                    // println!("\n----------------------------\n");
-                    // result
-                    unimplemented!()
+                    println!("Running ZeroTrace");
+                    let result = microbenchmarks::zerotrace(&enclave, initial_size);
+                    println!("\n----------------------------\n");
+                    result
                 }
                 OramMicrobenchmarks::OramAccess { block_size, initial_size } => {
-                    // println!("Running DORAM Access");
-                    // println!("\nItems: {}, Blocksize: {}", num, size);
-                    // let result = microbenchmarks::doram(&enclave, initial_size, block_size as _);
-                    // println!("\n----------------------------\n");
-                    // result
-                    unimplemented!()
-                    
+                    println!("Running DORAM Access");
+                    println!("\nItems: {}, Blocksize: {}", initial_size, block_size);
+                    let result = microbenchmarks::doram(&enclave, initial_size, block_size as _);
+                    println!("\n----------------------------\n");
+                    result
                 }
             }
         }
